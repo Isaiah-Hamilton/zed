@@ -6,10 +6,11 @@ use settings::RegisterSetting;
 use crate::provider::{
     anthropic, anthropic::AnthropicSettings, anthropic_compatible::AnthropicCompatibleSettings,
     bedrock, bedrock::AmazonBedrockSettings, cloud::ZedDotDevSettings, deepseek::DeepSeekSettings,
-    google::GoogleSettings, lmstudio::LmStudioSettings, mistral, mistral::MistralSettings,
-    ollama::OllamaSettings, open_ai::OpenAiSettings, open_ai_compatible::OpenAiCompatibleSettings,
-    open_router, open_router::OpenRouterSettings, opencode, opencode::OpenCodeSettings,
-    resolve_custom_headers, vercel_ai_gateway::VercelAiGatewaySettings, x_ai::XAiSettings,
+    google::GoogleSettings, llama_cpp::LlamaCppSettings, lmstudio::LmStudioSettings, mistral,
+    mistral::MistralSettings, ollama::OllamaSettings, open_ai::OpenAiSettings,
+    open_ai_compatible::OpenAiCompatibleSettings, open_router, open_router::OpenRouterSettings,
+    opencode, opencode::OpenCodeSettings, resolve_custom_headers,
+    vercel_ai_gateway::VercelAiGatewaySettings, x_ai::XAiSettings,
 };
 
 #[derive(Debug, RegisterSetting)]
@@ -19,6 +20,7 @@ pub struct AllLanguageModelSettings {
     pub bedrock: AmazonBedrockSettings,
     pub deepseek: DeepSeekSettings,
     pub google: GoogleSettings,
+    pub llama_cpp: HashMap<Arc<str>, LlamaCppSettings>,
     pub lmstudio: LmStudioSettings,
     pub mistral: MistralSettings,
     pub ollama: OllamaSettings,
@@ -52,6 +54,7 @@ impl settings::Settings for AllLanguageModelSettings {
         let bedrock = language_models.bedrock.unwrap();
         let deepseek = language_models.deepseek.unwrap();
         let google = language_models.google.unwrap();
+        let llama_cpp = language_models.llama_cpp.unwrap();
         let lmstudio = language_models.lmstudio.unwrap();
         let mistral = language_models.mistral.unwrap();
         let ollama = language_models.ollama.unwrap();
@@ -116,6 +119,24 @@ impl settings::Settings for AllLanguageModelSettings {
                 available_models: google.available_models.unwrap_or_default(),
                 custom_headers: custom_headers_from("Google AI", google.custom_headers, &[]),
             },
+            llama_cpp: llama_cpp
+                .into_iter()
+                .map(|(key, value)| {
+                    let provider_label = format!("llama.cpp ({key})");
+                    (
+                        key,
+                        LlamaCppSettings {
+                            api_url: value.api_url,
+                            available_models: value.available_models,
+                            custom_headers: custom_headers_from(
+                                &provider_label,
+                                value.custom_headers,
+                                &[],
+                            ),
+                        },
+                    )
+                })
+                .collect(),
             lmstudio: LmStudioSettings {
                 api_url: lmstudio.api_url.unwrap(),
                 available_models: lmstudio.available_models.unwrap_or_default(),

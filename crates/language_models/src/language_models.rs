@@ -22,6 +22,7 @@ use crate::provider::bedrock::BedrockLanguageModelProvider;
 use crate::provider::cloud::CloudLanguageModelProvider;
 use crate::provider::copilot_chat::CopilotChatLanguageModelProvider;
 use crate::provider::google::GoogleLanguageModelProvider;
+use crate::provider::llama_cpp::LlamaCppLanguageModelProvider;
 use crate::provider::lmstudio::LmStudioLanguageModelProvider;
 pub use crate::provider::mistral::MistralLanguageModelProvider;
 use crate::provider::ollama::OllamaLanguageModelProvider;
@@ -235,15 +236,26 @@ fn register_compatible_providers(
     for (provider_id, kind) in &new.0 {
         if old.0.get(provider_id) != Some(kind) {
             match kind {
-                CompatibleProviderKind::OpenAi => registry.register_provider(
-                    Arc::new(OpenAiCompatibleLanguageModelProvider::new(
-                        provider_id.clone(),
-                        client.http_client(),
-                        credentials_provider.clone(),
+                CompatibleProviderKind::OpenAi => {
+                    registry.register_provider(
+                        Arc::new(LlamaCppLanguageModelProvider::new(
+                            provider_id.clone(),
+                            client.http_client(),
+                            credentials_provider.clone(),
+                            cx,
+                        )),
                         cx,
-                    )),
-                    cx,
-                ),
+                    );
+                    registry.register_provider(
+                        Arc::new(OpenAiCompatibleLanguageModelProvider::new(
+                            provider_id.clone(),
+                            client.http_client(),
+                            credentials_provider.clone(),
+                            cx,
+                        )),
+                        cx,
+                    );
+                }
                 CompatibleProviderKind::Anthropic => registry.register_provider(
                     Arc::new(AnthropicCompatibleLanguageModelProvider::new(
                         provider_id.clone(),

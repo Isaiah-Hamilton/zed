@@ -15,6 +15,7 @@ pub struct AllLanguageModelSettingsContent {
     pub bedrock: Option<AmazonBedrockSettingsContent>,
     pub deepseek: Option<DeepseekSettingsContent>,
     pub google: Option<GoogleSettingsContent>,
+    pub llama_cpp: Option<HashMap<Arc<str>, LlamaCppSettingsContent>>,
     pub lmstudio: Option<LmStudioSettingsContent>,
     pub mistral: Option<MistralSettingsContent>,
     pub ollama: Option<OllamaSettingsContent>,
@@ -338,6 +339,14 @@ pub struct OpenAiCompatibleSettingsContent {
 }
 
 #[with_fallible_options]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, JsonSchema, MergeFrom)]
+pub struct LlamaCppSettingsContent {
+    pub api_url: String,
+    pub available_models: Vec<LlamaCppAvailableModel>,
+    pub custom_headers: Option<HashMap<String, String>>,
+}
+
+#[with_fallible_options]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema, MergeFrom)]
 pub struct OpenAiModelCapabilities {
     #[serde(default = "default_true")]
@@ -358,6 +367,19 @@ impl Default for OpenAiModelCapabilities {
 #[with_fallible_options]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema, MergeFrom)]
 pub struct OpenAiCompatibleAvailableModel {
+    pub name: String,
+    pub display_name: Option<String>,
+    pub max_tokens: u64,
+    pub max_output_tokens: Option<u64>,
+    pub max_completion_tokens: Option<u64>,
+    pub reasoning_effort: Option<OpenAiReasoningEffort>,
+    #[serde(default)]
+    pub capabilities: OpenAiCompatibleModelCapabilities,
+}
+
+#[with_fallible_options]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, JsonSchema, MergeFrom)]
+pub struct LlamaCppAvailableModel {
     pub name: String,
     pub display_name: Option<String>,
     pub max_tokens: u64,

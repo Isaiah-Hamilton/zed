@@ -2382,6 +2382,7 @@
     "google": {
       "api_url": "https://generativelanguage.googleapis.com",
     },
+    "llama_cpp": {},
     "ollama": {
       "api_url": "http://localhost:11434",
     },
